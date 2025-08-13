@@ -347,7 +347,7 @@
   
   <div class="input-group">
     <label for="userInput" class="input-label">What would you like to cook today?</label>
-    <textarea id="userInput" rows="4" placeholder="Ask me anything about cooking... e.g., 'How do I make creamy spaghetti carbonara?' or 'What's a quick breakfast recipe?'"></textarea>
+    <textarea id="userInput" rows="4" placeholder="Ask me anything about cooking...e.g “How to make Spaghetti carbonara?” or “Quick breakfast ideas.”'"></textarea>
   </div>
 
   <div class="button-group">
@@ -489,18 +489,6 @@ async function getRecipe() {
         if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
 
         const data = await res.json();
-
-        // Log raw JSON
-        console.log("RAW DOBBY RESPONSE:", data);
-
-        // Download raw JSON file
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "dobby_raw_response.json";
-        a.click();
-        URL.revokeObjectURL(url);
 
         let recipeText = data.choices?.[0]?.text || "No recipe found.";
 
