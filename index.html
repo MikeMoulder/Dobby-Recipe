@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dobby Recipe AI</title>
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Inter', 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .container {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 24px;
+    padding: 40px;
+    box-shadow: 
+      0 25px 50px -12px rgba(0, 0, 0, 0.25),
+      0 0 0 1px rgba(255, 255, 255, 0.2);
+    width: 100%;
+    max-width: 700px;
+    transition: transform 0.3s ease;
+  }
+
+  .container:hover {
+    transform: translateY(-2px);
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .logo {
+    width: 120px;
+    height: auto;
+    margin: 0 auto 20px;
+    display: block;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    animation: float 6s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+
+  h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 10px;
+  }
+
+  .subtitle {
+    color: #6b7280;
+    font-size: 1.1rem;
+    font-weight: 400;
+    margin-bottom: 30px;
+  }
+
+  .input-group {
+    position: relative;
+    margin-bottom: 24px;
+  }
+
+  .input-label {
+    display: block;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+  }
+
+  textarea {
+    width: 100%;
+    padding: 20px;
+    font-size: 16px;
+    border: 2px solid #e5e7eb;
+    border-radius: 16px;
+    resize: vertical;
+    min-height: 120px;
+    font-family: inherit;
+    transition: all 0.3s ease;
+    background: #fafbfc;
+  }
+
+  textarea:focus {
+    outline: none;
+    border-color: #667eea;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+
+  textarea::placeholder {
+    color: #9ca3af;
+    font-style: italic;
+  }
+
+  .button-group {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  button {
+    flex: 1;
+    min-width: 140px;
+    padding: 16px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    border: none;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+  }
+
+  .btn-secondary {
+    background: #f3f4f6;
+    color: #374151;
+    border: 2px solid #e5e7eb;
+  }
+
+  .btn-secondary:hover:not(:disabled) {
+    background: #e5e7eb;
+    border-color: #d1d5db;
+  }
+
+  button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  .spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #ffffff;
+    border-top: 2px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    display: inline-block;
+    margin-right: 8px;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  .response {
+    margin-top: 32px;
+    padding: 28px;
+    background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+    border-radius: 20px;
+    border: 1px solid #e2e8f0;
+    text-align: left;
+    line-height: 1.7;
+    font-size: 15px;
+    display: none;
+    animation: slideIn 0.5s ease;
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .response.show {
+    display: block;
+  }
+
+  .response h2 {
+    color: #1e293b;
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin: 24px 0 12px 0;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #e2e8f0;
+  }
+
+  .response h2:first-child {
+    margin-top: 0;
+  }
+
+  .response strong {
+    color: #374151;
+    font-weight: 600;
+  }
+
+  .response ul, .response ol {
+    margin: 16px 0;
+    padding-left: 24px;
+  }
+
+  .response li {
+    margin: 8px 0;
+  }
+
+  .quick-suggestions {
+    margin-top: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+  }
+
+  .suggestion-chip {
+    background: rgba(102, 126, 234, 0.1);
+    color: #667eea;
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .suggestion-chip:hover {
+    background: rgba(102, 126, 234, 0.2);
+    transform: translateY(-1px);
+  }
+
+  .typing-indicator {
+    display: flex;
+    align-items: center;
+    color: #667eea;
+    font-weight: 500;
+  }
+
+  .typing-dots {
+    display: flex;
+    gap: 4px;
+    margin-left: 10px;
+  }
+
+  .typing-dots span {
+    width: 8px;
+    height: 8px;
+    background: #667eea;
+    border-radius: 50%;
+    animation: typing 1.4s infinite;
+  }
+
+  .typing-dots span:nth-child(1) { animation-delay: 0s; }
+  .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes typing {
+    0%, 60%, 100% { transform: scale(1); opacity: 0.7; }
+    30% { transform: scale(1.2); opacity: 1; }
+  }
+
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    body {
+      padding: 10px;
+    }
+
+    .container {
+      padding: 24px;
+      border-radius: 20px;
+    }
+
+    h1 {
+      font-size: 2rem;
+    }
+
+    .subtitle {
+      font-size: 1rem;
+    }
+
+    .button-group {
+      flex-direction: column;
+    }
+
+    button {
+      min-width: 100%;
+    }
+
+    .quick-suggestions {
+      justify-content: flex-start;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .container {
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 1.75rem;
+    }
+
+    textarea {
+      min-height: 100px;
+      padding: 16px;
+    }
+
+    button {
+      padding: 14px 20px;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <img src="dobby-logo.png" alt="Dobby Recipe AI Logo" class="logo">
+    <h1>Dobby Recipe AI</h1>
+    <p class="subtitle">Your magical cooking companion for delicious recipes</p>
+  </div>
+  
+  <div class="input-group">
+    <label for="userInput" class="input-label">What would you like to cook today?</label>
+    <textarea id="userInput" rows="4" placeholder="Ask me anything about cooking... e.g., 'How do I make creamy spaghetti carbonara?' or 'What's a quick breakfast recipe?'"></textarea>
+  </div>
+
+  <div class="button-group">
+    <button onclick="getRecipe()" class="btn-primary" id="getRecipeBtn">
+      ✨ Get Recipe
+    </button>
+    <button onclick="clearAll()" class="btn-secondary" id="clearBtn">
+      🗑️ Clear All
+    </button>
+  </div>
+
+  <div class="quick-suggestions">
+    <div class="suggestion-chip" onclick="setInput('How to make spaghetti carbonara?')">🍝 Spaghetti Carbonara</div>
+    <div class="suggestion-chip" onclick="setInput('Quick breakfast recipe ideas')">🥞 Quick Breakfast</div>
+    <div class="suggestion-chip" onclick="setInput('How to bake chocolate chip cookies?')">🍪 Chocolate Cookies</div>
+    <div class="suggestion-chip" onclick="setInput('Easy chicken dinner recipes')">🍗 Chicken Dinner</div>
+  </div>
+
+  <div id="response" class="response"></div>
+</div>
+
+<script>
+const API_KEY = "fw_3ZRfi3Krcv5qJd58E8nCzeYM"; // Fireworks API key
+const responseDiv = document.getElementById("response");
+
+// Function to clean and extract the first recipe from duplicated content
+function extractFirstRecipe(text) {
+    // Look for the "### End of Recipe" marker and extract everything before the first one
+    const endMarker = "### End of Recipe";
+    const firstEndIndex = text.indexOf(endMarker);
+    
+    if (firstEndIndex !== -1) {
+        // Include the end marker in the result
+        return text.substring(0, firstEndIndex + endMarker.length);
+    }
+    
+    // If no end marker found, look for the "---" separator that indicates repetition
+    const separator = "\n---\n";
+    const separatorIndex = text.indexOf(separator);
+    
+    if (separatorIndex !== -1) {
+        return text.substring(0, separatorIndex);
+    }
+    
+    // If no separators found, return the original text (might not be duplicated)
+    return text;
+}
+
+// Markdown → HTML (manual, no library)
+function renderMarkdown(text) {
+  // Normalize CRLF to LF first
+  text = text.replace(/\r\n/g, '\n');
+
+  // #### -> h4 (allow leading spaces)
+  text = text.replace(/^\s*####\s+(.*)$/gm, '<h4>$1</h4>');
+
+  // ### -> h3
+  text = text.replace(/^\s*###\s+(.*)$/gm, '<h3>$1</h3>');
+
+  // ## Step X(: or .) -> h2 (bold)
+  text = text.replace(/^\s*##\s+(Step\s*\d+[:.]?)/gm, '<h2><strong>$1</strong></h2>');
+
+  // "1. Something" -> Step heading + paragraph
+  text = text.replace(/^\s*(\d+)\.\s+(.*)$/gm, '<h2><strong>Step $1:</strong></h2><p>$2</p>');
+
+  // **bold**
+  text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+  // Add spacing after h2/h3/h4 (only if not already followed by <p>)
+  text = text.replace(/<\/h2>(?!<p>)/g, '</h2><p>');
+  text = text.replace(/<\/h3>(?!<p>)/g, '</h3><p>');
+  text = text.replace(/<\/h4>(?!<p>)/g, '</h4><p>');
+
+  // Paragraph handling
+  text = text.replace(/\n\s*\n/g, '</p><p>'); // double line breaks -> new paragraph
+  text = text.replace(/\n/g, '<br>');         // single line breaks -> <br>
+
+  // Ensure final paragraph closes (harmless if already closed)
+  if (!text.endsWith('</p>')) text += '</p>';
+
+  return text;
+}
+
+// Step-by-step reveal (now also splits on h3/h4)
+function typeWriterSteps(element, htmlText, stepDelay = 800) {
+  element.innerHTML = '';
+  const stepBlocks = htmlText
+    .split(/(?=<h2>|<h3>|<h4>|<p>)/g)
+    .filter(block => block.trim() !== '');
+
+  let i = 0;
+  (function showNext() {
+    if (i < stepBlocks.length) {
+      const stepEl = document.createElement('div');
+      stepEl.innerHTML = stepBlocks[i];
+      stepEl.style.opacity = 0;
+      element.appendChild(stepEl);
+      requestAnimationFrame(() => {
+        stepEl.style.transition = 'opacity 0.5s';
+        stepEl.style.opacity = 1;
+      });
+      i++;
+      setTimeout(showNext, stepDelay);
+    }
+  })();
+}
+
+async function getRecipe() {
+    const input = document.getElementById("userInput").value.trim();
+    if (!input) {
+        alert("Please enter a cooking question.");
+        return;
+    }
+
+    responseDiv.innerHTML = "Thinking... 🍽";
+    responseDiv.classList.add("show");
+
+    try {
+        const res = await fetch("https://api.fireworks.ai/inference/v1/completions", {
+            method: "POST",
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${API_KEY}`
+            },
+            body: JSON.stringify({
+                model: "accounts/sentientfoundation-serverless/models/dobby-mini-unhinged-plus-llama-3-1-8b",
+                max_tokens: 2048, // Reduced from 4096 to prevent over-generation
+                top_p: 0.9, // Reduced from 1 for more focused responses
+                top_k: 40,
+                presence_penalty: 0.1, // Small penalty to reduce repetition
+                frequency_penalty: 0.1, // Small penalty to reduce repetition
+                temperature: 0.1,
+                stop: ["### End of Recipe", "---", "\n\n### Spaghetti Carbonara"], // Add stop sequences
+                prompt: `You are a cooking assistant. Provide a clear, step-by-step recipe for the following request in Markdown format. End your response with "### End of Recipe" and do not repeat the recipe multiple times: ${input}`
+            })
+        });
+
+        if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+
+        const data = await res.json();
+
+        // Log raw JSON
+        console.log("RAW DOBBY RESPONSE:", data);
+
+        // Download raw JSON file
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "dobby_raw_response.json";
+        a.click();
+        URL.revokeObjectURL(url);
+
+        let recipeText = data.choices?.[0]?.text || "No recipe found.";
+
+        // Clean the response by extracting only the first recipe
+        recipeText = extractFirstRecipe(recipeText);
+
+        console.log("CLEANED RECIPE TEXT:", recipeText);
+
+        // Convert Markdown to HTML
+        const htmlFormatted = renderMarkdown(recipeText);
+
+        // Step-by-step reveal
+        typeWriterSteps(responseDiv, htmlFormatted, 800);
+
+    } catch (error) {
+        console.error("Error:", error);
+        responseDiv.textContent = `Error: ${error.message}`;
+    }
+}
+
+function clearAll() {
+    document.getElementById("userInput").value = "";
+    responseDiv.innerHTML = "";
+    responseDiv.classList.remove("show");
+}
+
+function setInput(text) {
+    document.getElementById("userInput").value = text;
+}
+</script>
+</body>
+</html>
