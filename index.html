@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dobby Recipe AI</title>
+<link rel="icon" type="image/png" href="dobby-logo.png">
+<link rel="shortcut icon" type="image/png" href="dobby-logo.png">
+<link rel="apple-touch-icon" href="dobby-logo.png">
 <style>
   * {
     margin: 0;
@@ -142,6 +145,13 @@
   .btn-primary:hover:not(:disabled) {
     transform: translateY(-2px);
     box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+  }
+
+  .btn-primary:disabled {
+    background: linear-gradient(135deg, #9ca3af, #6b7280);
+    box-shadow: 0 2px 8px rgba(156, 163, 175, 0.3);
+    transform: none;
+    cursor: not-allowed;
   }
 
   .btn-secondary {
@@ -347,7 +357,7 @@
   
   <div class="input-group">
     <label for="userInput" class="input-label">What would you like to cook today?</label>
-    <textarea id="userInput" rows="4" placeholder="Ask me anything about cooking...e.g “How to make Spaghetti carbonara?” or “Quick breakfast ideas.”'"></textarea>
+    <textarea id="userInput" rows="4" placeholder="Ask me anything about cooking...e.g "How to make Spaghetti carbonara?" or "Quick breakfast ideas."'"></textarea>
   </div>
 
   <div class="button-group">
@@ -431,8 +441,14 @@ function renderMarkdown(text) {
   return text;
 }
 
+// Global variable to track typewriter timeout IDs
+let typewriterTimeouts = [];
+
 // Step-by-step reveal (now also splits on h3/h4)
 function typeWriterSteps(element, htmlText, stepDelay = 800) {
+  // Clear any existing timeouts first
+  clearAllTypewriterTimeouts();
+  
   element.innerHTML = '';
   const stepBlocks = htmlText
     .split(/(?=<h2>|<h3>|<h4>|<p>)/g)
@@ -450,18 +466,38 @@ function typeWriterSteps(element, htmlText, stepDelay = 800) {
         stepEl.style.opacity = 1;
       });
       i++;
-      setTimeout(showNext, stepDelay);
+      const timeoutId = setTimeout(showNext, stepDelay);
+      typewriterTimeouts.push(timeoutId);
     }
   })();
 }
 
+// Function to clear all typewriter timeouts
+function clearAllTypewriterTimeouts() {
+  typewriterTimeouts.forEach(timeoutId => clearTimeout(timeoutId));
+  typewriterTimeouts = [];
+}
+
 async function getRecipe() {
     const input = document.getElementById("userInput").value.trim();
+    const getRecipeBtn = document.getElementById("getRecipeBtn");
+    
     if (!input) {
         alert("Please enter a cooking question.");
         return;
     }
 
+    // Stop any ongoing typewriter animations first
+    clearAllTypewriterTimeouts();
+    
+    // Clear existing responses and reset state
+    responseDiv.innerHTML = "";
+    responseDiv.classList.remove("show");
+    
+    // Disable the button immediately when clicked
+    getRecipeBtn.disabled = true;
+    getRecipeBtn.innerHTML = '<span class="spinner"></span>Getting Recipe...';
+    
     responseDiv.innerHTML = "Thinking... 🍽";
     responseDiv.classList.add("show");
 
@@ -506,10 +542,17 @@ async function getRecipe() {
     } catch (error) {
         console.error("Error:", error);
         responseDiv.textContent = `Error: ${error.message}`;
+    } finally {
+        // Re-enable the button after the request is complete (success or error)
+        getRecipeBtn.disabled = false;
+        getRecipeBtn.innerHTML = '✨ Get Recipe';
     }
 }
 
 function clearAll() {
+    // Stop any ongoing typewriter animations
+    clearAllTypewriterTimeouts();
+    
     document.getElementById("userInput").value = "";
     responseDiv.innerHTML = "";
     responseDiv.classList.remove("show");
